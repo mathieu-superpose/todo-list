@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
-import { TodoList } from './TodoList';
+import React, { useState, useEffect } from 'react';
 import { AddTodoForm } from './AddTodoForm';
+import { TodoList } from './TodoList';
+import { useQuery, gql } from '@apollo/client';
+
 
 const initialTodos: Todo[] = [
   {
-    text: 'Walk the dog',
+    text: '',
     complete: false,
-  },
-  {
-    text: 'Write app',
-    complete: true,
-  },
+  }
 ];
+
+const GET_TODOS = gql`
+  query GetTodoList {
+    getTodoList {
+      _id
+      text
+      complete
+    }
+  }
+`;
 
 function App() {
   const [todos, setTodos] = useState(initialTodos);
+  const { loading, error, data } = useQuery(GET_TODOS);
 
   const toggleTodo = (selectedTodo: Todo) => {
     const newTodos = todos.map(todo => {
@@ -33,6 +42,15 @@ function App() {
     const newTodo = { text, complete: false };
     setTodos([...todos, newTodo]);
   };
+
+  useEffect(() => {
+    if(loading) console.log(loading)
+    if(error) console.log(error)
+    if(data) setTodos(data.getTodoList)
+  }, [data, loading, error])
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
 
   return (
     <>
